@@ -12,6 +12,9 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import os
 import utils
+import numpy as np
+import adios2 as ad2
+
 from lmdb_datasets import LMDBDataset
 from thirdparty.lsun import LSUN
 
@@ -109,6 +112,44 @@ def get_loaders_eval(dataset, args):
         train_transform, valid_transform = _data_transforms_generic(resize)
         train_data = LMDBDataset(root=args.data, name='ffhq', train=True, transform=train_transform)
         valid_data = LMDBDataset(root=args.data, name='ffhq', train=False, transform=valid_transform)
+    
+    elif dataset == 'nstx':
+        
+        # resize = 64
+        # num_classes = 40
+        # train_transform, valid_transform = _data_transforms_celeba64(resize)
+        # train_data = LMDBDataset(root=args.data, name='celeba64', train=True, transform=train_transform, is_encoded=True)
+        # valid_data = LMDBDataset(root=args.data, name='celeba64', train=False, transform=valid_transform, is_encoded=True)
+        with ad2.open('nstx_data_ornl_demo_v2.bp','r') as f:
+            gpiData = f.read('gpiData')[offset:offset+length:1,:,:]
+        ## Change dimension order
+        X = np.moveaxis(gpiData, 2, 1)
+        #X = np.einsum('kji->kij', gpiData)
+        X = X[:,:,::-1]
+
+        zd = X.astype('float32')#changing gpidata to X to make reconstructed image vertical
+        zlb = np.array(range(len(zd)), dtype=np.int32)
+
+        #zlb = np.concatenate(li)
+        zmu = np.mean(zd, axis=(1,2))
+        zsig = np.std(zd, axis=(1,2))
+        zmin = np.min(zd, axis=(1,2))
+        zmax = np.max(zd, axis=(1,2))
+        zd = (zd - zmin[:,np.newaxis,np.newaxis])/(zmax-zmin)[:,np.newaxis,np.newaxis]
+        print ("zd shape, zlb shape, min(zd) max zd", zd.shape, zlb.shape, np.min(zd), np.max(zd))
+
+        lx = list()
+        ly = list()
+        # for i in range(len(zd)):
+        #     lx.append(zd[i,:])
+        #     ly.append(zlb[i])
+        for i in range(len(zd)):
+            lx.append(zd[i,:,:])
+            ly.append(zlb[i])
+        # print("after padding")
+
+        training_data = torch.utils.data.TensorDataset(torch.Tensor(lx), torch.Tensor(ly))
+
     else:
         raise NotImplementedError
 
