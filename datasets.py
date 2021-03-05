@@ -120,6 +120,8 @@ def get_loaders_eval(dataset, args):
         # train_transform, valid_transform = _data_transforms_celeba64(resize)
         # train_data = LMDBDataset(root=args.data, name='celeba64', train=True, transform=train_transform, is_encoded=True)
         # valid_data = LMDBDataset(root=args.data, name='celeba64', train=False, transform=valid_transform, is_encoded=True)
+        offset = 159000
+        length = 16000
         with ad2.open('nstx_data_ornl_demo_v2.bp','r') as f:
             gpiData = f.read('gpiData')[offset:offset+length:1,:,:]
         ## Change dimension order
@@ -140,15 +142,11 @@ def get_loaders_eval(dataset, args):
 
         lx = list()
         ly = list()
-        # for i in range(len(zd)):
-        #     lx.append(zd[i,:])
-        #     ly.append(zlb[i])
         for i in range(len(zd)):
             lx.append(zd[i,:,:])
             ly.append(zlb[i])
-        # print("after padding")
 
-        training_data = torch.utils.data.TensorDataset(torch.Tensor(lx), torch.Tensor(ly))
+        train_data = torch.utils.data.TensorDataset(torch.Tensor(lx), torch.Tensor(ly))
 
     else:
         raise NotImplementedError
