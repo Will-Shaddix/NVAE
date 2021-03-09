@@ -298,7 +298,7 @@ if __name__ == '__main__':
                         help='id used for storing intermediate results')
     # data
     parser.add_argument('--dataset', type=str, default='mnist',
-                        choices=['cifar10', 'mnist', 'celeba_64', 'celeba_256',
+                        choices=['nstx', 'cifar10', 'mnist', 'celeba_64', 'celeba_256',
                                  'imagenet_32', 'ffhq', 'lsun_bedroom_128'],
                         help='which dataset to use')
     parser.add_argument('--data', type=str, default='/tmp/nasvae/data',
